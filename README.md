@@ -13,7 +13,7 @@ Just trying to solve it to improve myself.
     ```
 
 ## solution
-- [ ] Unstoppable
+- [x] Unstoppable
 - [ ] Naive receiver
 - [ ] Truster
 - [ ] Side Entrance

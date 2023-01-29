@@ -24,4 +24,4 @@ Just trying to solve it to improve myself.
 - [x] [Puppet V2](https://github.com/CokeFung/damn-vulnerable-defi-v2-solution/tree/main/test/puppet-v2)
 - [x] [Free Rider](https://github.com/CokeFung/damn-vulnerable-defi-v2-solution/tree/main/test/free-rider)
 - [x] [Backdoor](https://github.com/CokeFung/damn-vulnerable-defi-v2-solution/tree/main/test/backdoor)
-- [ ] [Climber](https://github.com/CokeFung/damn-vulnerable-defi-v2-solution/tree/main/test/climber)
+- [x] [Climber](https://github.com/CokeFung/damn-vulnerable-defi-v2-solution/tree/main/test/climber)

